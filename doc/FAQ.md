@@ -30,4 +30,54 @@
   浏览 `lein help sample` 来获得更多信息.
 
 **Q:** 我指定了依赖库的版本X,为什么获得了版本Y?
-**A:**
+**A:** 你依赖的依赖定义了一个版本范围，它们覆盖了你的软定义。
+  运行 `lein deps :tree` 来浏览你依赖的版本范围。你可以使用
+  `:exclusions` 来避免影响到你接下来的依赖。浏览 `lein help sample`
+  来了解它是怎么工作的。你可以来提bug来说明你遇到的版本原因。
+
+**Q:** 我有两个依赖，X和Y，它们都依赖Z。那么Z应该怎么定义版本？
+**A:** `:dependencies` 列表里面的依赖最终是采取最小版本的。如果是多重定义，
+  那么选择在前的。例如：
+
+    [Z "1.0.9"]
+    [X "1.3.2"]
+      [Z "2.0.1"]
+
+  `[Z "1.0.9"]` 会被选择，因为它跟更小。
+  例如：
+
+    [X "1.3.2"]
+      [Z "2.0.1"]
+    [Y "1.0.5"]
+      [Z "2.1.3"]
+
+  X依赖在前，所以 `[Z "2.0.1"]` 被选择。如果我们把Y提前，那么 `[Z "2.1.3"]` 会被选择。
+  注意这些都是软依赖， `lein deps :tree` 将会给出提示，哪些没有被选择。
+
+**Q:** 我在一个HTTP代理后，我应该怎么样获取依赖？
+**A:** 在Leiningen 2.x 中设置 `$http_proxy` 环境变量。你也可以设置
+  `$http_no_proxy` 来避免代理一些可以直接访问的服务器。这是一个已
+  `|` 来分割的，可能以 `*` 来通用匹配的列表。比如: `localhost|*.mydomain.com`。
+  如果是Leiningen 1.x 版本，看这里[配置Maven代码](http://maven.apache.org/guides/mini/guide-proxies.html)。
+  相关文件 `~/.m2/settings.xml`。
+
+**Q:** 怎么样加快加载速度？
+**A:** Leiningen的主要延迟来自JVMs两点:一个是你的项目一个是Leiningen自身。
+  更多的人会保持单个项目的REPL来进行开发。你可以依赖你的编辑器来集成Clojure。
+  浏览 [nrepl.el](https://github.com/clojure-emacs/cider) 或者
+  [fireplace](https://github.com/tpope/vim-fireplace)。
+  当然你也可以使用 `lein repl`。
+
+**Q:** 如果仍然很慢，还可以做点其他吗？
+**A:** 这篇页面涉及到一些资料
+  [提高加载速度时间的方法](https://github.com/technomancy/leiningen/wiki/Faster)
+
+**Q:** 如果我更关注长期运行性能而不是启动时间？
+**A:** Leiningen 2.1.0 可以关闭可选项来提高启动速度(它更适合长期运行的处理)。
+  它会影响一些长期运行的性能问题，并且会导致错误的基准测试结果。
+  如果想要了解所有的JVM优化选项，你可以导入配置文件 `lein with-profiles production run ...` 。
+
+**Q:** "Unrecognized VM option 'TieredStopAtLevel=1'"是什么意思？
+**A:** 老版本的JVM不支持Leiningen的指令优化来使得JVM启动的更快。
+  你可以用 `export LEIN_JVM_OPTS=` 来关闭这些行为，或者更新JVM。
+
