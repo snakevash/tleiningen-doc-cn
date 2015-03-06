@@ -81,3 +81,35 @@
 **A:** 老版本的JVM不支持Leiningen的指令优化来使得JVM启动的更快。
   你可以用 `export LEIN_JVM_OPTS=` 来关闭这些行为，或者更新JVM。
 
+**Q:** 我尝试运行一个后台处理的项目（`lein run &`），但是进程在前台的时候就暂停了。
+  我应该怎么样运行一个后台程序？
+**A:** 为了持久的处理，最好还是创建一个uberjar并且用 `lein trampoline run &` 来使用。
+  短期程序，使用 `lein run <&- &` 和 `bash -c "lein run &"` 都工作的很好。
+
+**Q:** "could not transfer artifact ... peer not authenticated" 错误意味着？
+**A:** 这意味着你的JVM不能有效的认证，或者你正在经历一个
+  [man-in-the-middle attack](https://github.com/technomancy/leiningen/issues/1028#issuecomment-32732452)
+  攻击。Leiningen 会使用当前的Clojars公共证书，所以你就可以使用 `:certificates` ["clojures.pem"]
+  在你 `:user` 章节中，假设证书没有过期。
+
+**Q:** 我应该在项目运行时怎么决定版本号？
+**A:** Leiningen 写了一个叫做 `pom.properties` 到 `target/classes`，
+  它包含了版本号和git版本。在之前的Leiningen版本中，这个只有从jar文件运行才有用，
+  但是从 2.4.1开始在 `lein run ...` 也有效。你可以读取它：
+
+```clj
+(doto (java.util.Properties.)
+  (.load (io/reader (io/resource "META-INF/maven/group/artifact/pom.properties"))))
+```
+
+**Q:** 我需要为uberjar设置AOT，我能够在开发的时候避免它吗？
+**A:** 这是一个合理的需求。 Leiningen 支持隔离不同的配置通过目标文件夹。
+  简单的指定 `:target-path "target/%s"` 来给不同的配置文件可以生成相应的文件。
+  你可以使用 `:aot` 在 `:uberjar` 配置中，那么 .class文件不会影响你的日常开发。
+  你能够指定配置隔离 `:target-path` 在你 `:user` 配置文件中。
+
+**Q:** 有没有一种方法不使用AOT的uberjar？
+**A:** 从2.4.0开始，如果你在 `project.clj` 文件里面省略 `:main` ,
+  你的uberjars将会使用 `clojure.main` 当做它们的入口。你可以加载
+  `java -jar my-app-standalone.jar -m my.entry.namespace arg1 arg2 [...]`
+  不需要AOT的，但是会浪费很多时间。
