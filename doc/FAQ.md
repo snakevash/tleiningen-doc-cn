@@ -23,3 +23,11 @@
 **A:** Leiningen提供这么一个特性，叫做 *checkout dependencies* ，它可以实现上述的功能。
   浏览[教程](https://github.com/technomancy/leiningen/blob/stable/doc/TUTORIAL.md)
   来获得更多信息。
+
+**Q:** 可以排除间接的依赖吗？
+**A:** 可以。一些库，比如log4j，依赖项目里那些没有存在公共仓库的和非必要的基础函数。
+  项目依赖列表 `:dependencies` 可以用关键 `:exclusions` 来排除一些依赖。
+  浏览 `lein help sample` 来获得更多信息.
+
+**Q:** 我指定了依赖库的版本X,为什么获得了版本Y?
+**A:**
