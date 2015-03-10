@@ -32,4 +32,23 @@
             "deploy!" ^{:doc "Recompile sources, then deploy if tests succeed."}
             ;; "do" 任务支持嵌套的 vectors
             ["do" "clean" ["test" ":integration"] ["deploy" "clojars"]]}
+
+  ;;; 文件系统
+  ;; 如果你用了一个不同的目录结构, 你可以设置这些.
+  ;; 输入路径是包含字符串的 vector, 输出是字符串.
+  :source-paths ["src" "src/main/clojure"]
+  :java-source-paths ["src/main/java"]
+  :test-paths ["test" "test/main/clojure"]
+  :resource-paths ["src/main/resource"] ; 非代码类的文件 包含在 classpath/jar .
+  ;; 所有生成的文件被放置在 :target-path. 为了避免跨配置污染, 建议加上 %s 到你定义的路径中,
+  ;; 它可以标识当前的活跃配置文件
+  :target-path "target/%s/"
+  ;; 提前编译文件存放路径 %s 表示当前配置名称
+  :compile-path "%s/classy-files"
+  ;; 该目录是依赖中所包含的原声组件的解压缩.
+  ;; %s 表示当前配置名称
+  ;; 注意 这不是查找本地库的地方, 使用 :jvm-opts 来替代 -Djava.library.path=...
+  :native-path "%s/bits-n-stuff"
+  :clean-targets [:target-path :compile-path :foobar-paths
+                  [:baz-config :qiu-path] "out"]
   )
