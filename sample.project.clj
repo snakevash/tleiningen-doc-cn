@@ -1,4 +1,28 @@
 (defproject org.example/sample "1.0.0-SNAPSHOT"
+  ;;; 配置
+  ;; 每个激活的配置文件会在项目配置里面合并.
+  ;; :dev 和 :user 配置是默认激活的, 后者需要到 ~/.lein/profiles.clj
+  ;; 里面查看. 使用带配置的任务更具优先级,
+  ;; `lein help profiles` 来查看详细解释.
+  :profiles {:debug {:debug true
+                     :injections [(prn (into {} (System/getProperties)))]}
+             :1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
+             :1.5 {:dependencies [[org.clojure/clojure "1.5.0"]]}
+             ;; 默认激活
+             :dev {:resource-paths ["dummy-data"]
+                   :dependencies [[clj-stacktrace "0.2.4"]]}
+             ;; 在uberjar过程中自动执行
+             :uberjar {:aot :all}
+             ;; 在repl模式中自动激活
+             :repl {:plugins [[cider/cider-nrepl "0.7.1"]]}}
+  ;; 加载这些命名空间中的hooks节点
+  :hooks [leiningen.hooks.difftest]
+  ;; 当它们加载时应用这些来自插件的函数到你的项目中
+  ;; hooks和中间件都可以在这里罗列然后悄悄加载
+  :middleware [lein-xml.plugin/middleware]
+  ;; 关闭悄悄加载
+  :implicit-middleware false
+  :implicit-hooks false
 
   ;;; 入口
   ;; 这个命名空间的 -main 函数将会在启动的时候调用
@@ -34,14 +58,43 @@
             ["do" "clean" ["test" ":integration"] ["deploy" "clojars"]]}
 
   ;;; 运行项目代码
+  ;; 通常Leiningen在执行项目代码之前会执行编译任务
+  ;; 但是你可以使用 :prep-tasks 来覆盖, 并且做一些其他任务比如编译protocol buffers
   :prep-tasks [["protobuf" "compile"] "javac" "compile"]
+  ;; 这些命名空间将会被提前编译.
+  ;; 需要被生成class或者交互函数之类的.
+  ;; 可以使用正则表达式来覆盖一些命名空间.
+  ;; 如果你仅仅在生成uberjar的时候生成class, `:aot :all` 在:uberjar 配置里面,
+  ;; 查看 :target-path 来开始基于配置文件的目标.
   :aot [org.example.sample]
+  ;; 在你项目里面每个form都需要执行的.
+  ;; 允许和 Gilardi Scenario 合作: http://technomancy.us/143
   :injections [(require 'clojure.pprint)]
+  ;; Java 代码能够操作 拦截 VM 的一些特性.
+  ;; 包括 :bootclasspath 来往classpath里面增加jar包.
   :java-agents [[nodisassemble "0.1.1" :options "extra"]]
+  ;; 可选项可以传递给java编译器, 跟 命令行额外参数一样.
   :javac-options ["-target" "1.6" "-source" "1.6" "-Xlint:-options"]
+  ;; 反射调用时触发警告 - 不建议
   :warn-on-reflection true
+  ;; 设置clojure全局变量. 范例是禁止pre-和post-conditions和反射调用警告.
+  ;; 查看clojure帮助文档来知道那些有用的全局变量
   :global-vars {*warn-on-reflection* true
                 *assert* false}
+  ;; 使用一个不同的java可执行文件
+  ;; Leiningen自己的JVM是设置在 LEIN_JAVA_CMD 环境变量中
+  :java-cmd "/home/phil/bin/java1.7"
+  ;; 你能够设置 JVM-level 可选参数.
+  ;; :java-opts 是这个的重命名
+  :jvm-opts ["-Xmx1g"]
+  ;; 在项目执行时设置上下文.
+  ;; 默认是 :subprocess 但也可以是 :leinigen 或者 :nrepl
+  ;; 来连接一个存在的项目执行进程. 一个项目的nREPL服务能够通过 `lein repl`来执行.
+  ;; 如果没有连接被建立, 那么 :subprocess 被回退
+  :eval-in :leinigen
+  ;; 开启bootclasspath优化.
+  ;; 它可以提高启动时间假定核心库都被加载好了.
+  :bootclasspath true
 
   ;;; 文件系统
   ;; 如果你用了一个不同的目录结构, 你可以设置这些.
