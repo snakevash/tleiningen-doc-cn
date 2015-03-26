@@ -134,4 +134,85 @@
   ;; 你可以使用下面的来共享代码到你的测试套件中:
   :checkout-deps-shares [:source-paths :test-paths
                          ~(fn [p] (str (:root p) "/lib/dev/*"))]
+
+  ;;; 测试
+  ;; 判断是否需要执行一个测试, 获取测试的元数据.
+  ;; `lein help tutorial` 来获得更多信息.
+  :test-selectors {:default (fn [m] (not (or (:integration m) (:regression m))))
+                   :integration :integration
+                   :regression :regression}
+  ;; 为了 `retest` 任务, 需要使用 clojure.test 库.
+  ;; `lein retask` 关闭.
+  :monkeypath-clojure-test false
+
+  ;;; Repl
+  ;; repl 可选项
+  :repl-options {;; 自定义前缀字符串
+                 ;; 默认字符串 user=>
+                 :prompt (fn [ns] (str "your command for <" ns ">,master? "))
+                 ;; 当repl会话开始打印的字符串
+                 :welcome (println "Welcome to the magical world of the repl!")
+                 ;; 指定命名空间开始时 初始化函数
+                 :init-ns foo.bar
+                 ;; 第一次打开repl将要执行的表达式,
+                 :init (println "here we are in" *ns*)
+                 ;; 打印错误的堆栈信息
+                 :caught clj-stacktrace.repl/pst+
+                 ;; 跳过默认加载并且打印帮助消息
+                 :skip-default-init false
+                 ;; 定义repl host和port
+                 :host "0.0.0.0"
+                 :port 4001
+                 ;; 如果nRepl任务如果加载太长时间, 那么它会超时
+                 :timeout 40000
+                 ;; nREPL服务自定义
+                 ;; 两者只能有一个能有效
+                 ;; 使用一个不同的服务端
+                 :nrepl-handler (clojure.tools.nrepl.server/default-handler)
+                 ;; 往服务端增加中间件
+                 :nrepl-middleware [my.nrepl.thing/wrap-amazingness
+                                    ;; 连接文档的更多细节
+                                    (fn [handler]
+                                      (fn [& args]
+                                        (prn :middle args)
+                                        (apply handler args)))]}
+
+  ;;; Jar包
+  ;; jar包文件产生.
+  ;; 将会被生成在 :target-path.
+  ;; 包括版本号
+  :jar-name "sample.jar"
+  ;; uberjar 配置
+  :uberjar-name "sample-standalone.jar"
+  ;; 包括 :source-paths 之外的jars
+  :omit-source true
+  ;; 排除文件
+  :jar-execlusions [#"(?:^|/).svn/"]
+  ;; uberjar 排除的文件
+  :uberjar-execlusion [#"META-INF/DUMMY.SF"]
+  ;; 在执行打包之前会执行清理任务来保护那些未定义AOT的
+  ;; 关闭这些行为
+  :auto-clean false
+  ;; 当有多个相同名称的文件和依赖时的文件合并规则.
+  ;; 用文件名称字符串映射和规则表达式来序列化三个函数:
+  ;; 1. 从输入拿取并且解析输出
+  ;; 2. 新的和当前的对比 合并它们
+  ;; 3. 拿取输出的
+  ;;
+  :uberjar-merge-with {#"\.properties$" [slurp str spit]}
+  :filespecs [{:type :path :path "config/base.clj"}
+              {:type :path :paths ["config/web" "config/clj"]}
+              {:type :bytes :path "project.clj"
+               :bytes ~(slurp "project.clj")}
+              {:type :fn :fn (fn [p]
+                               {:type :bytes :path "git-log"
+                                :bytes (:out (clojure.java.shell/sh
+                                              "git" "log" "-n" "1"))})}]
+  :manifest {"Project-awesome-level" "super-great"
+             "CLass-Path" ~#(clojure.string/join
+                             \space
+                             (leiningen.core.classpath/get-classpath %))
+             :my-section-1 [["MyKey1" "MyValue1"] ["MyKey2" "MyValue2"]]
+             :my-section-2 {"MyKey3" "MyValue3" "MyKey4" "MyValue4"}
+             "Grunge-level" my.plugin/calculate-grunginess}
   )
