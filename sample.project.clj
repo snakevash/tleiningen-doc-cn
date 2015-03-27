@@ -200,19 +200,83 @@
   ;; 3. 拿取输出的
   ;;
   :uberjar-merge-with {#"\.properties$" [slurp str spit]}
+  ;; 增加 jar 实体 支持 :path :paths :bytes :fn
   :filespecs [{:type :path :path "config/base.clj"}
-              {:type :path :paths ["config/web" "config/clj"]}
+              ;; 目录路径循环依赖
+              {:type :paths :paths ["config/web" "config/clj"]}
+              ;; 编程生成的内容
               {:type :bytes :path "project.clj"
+               ;; 字符串或者byte数组都可以
                :bytes ~(slurp "project.clj")}
+              ;; :fn 以项目的文件规范当做一个参数
+              ;; 并且返回一个文件规范的map
               {:type :fn :fn (fn [p]
                                {:type :bytes :path "git-log"
                                 :bytes (:out (clojure.java.shell/sh
                                               "git" "log" "-n" "1"))})}]
+  ;; 为jar的manifest设置任意的键值对.
+  ;; 任何vector和序列都是被接受的.
   :manifest {"Project-awesome-level" "super-great"
+             ;; 函数求值时项目会被当做参数
              "CLass-Path" ~#(clojure.string/join
                              \space
                              (leiningen.core.classpath/get-classpath %))
+             ;; 如果值是集合 那么manifest将会应用它们
              :my-section-1 [["MyKey1" "MyValue1"] ["MyKey2" "MyValue2"]]
              :my-section-2 {"MyKey3" "MyValue3" "MyKey4" "MyValue4"}
+             ;; 符号值将会当做函数求值
              "Grunge-level" my.plugin/calculate-grunginess}
-  )
+
+  ;;; Pom 文件
+  :pom-location "target/"
+  :parent [org.example/parent "0.0.1" :relative-path "../parent/pom.xml"]
+  :extension [[org.apache.maven.wagon/wagon-webdav "1.0-beta-2"]
+              [foo/bar-baz "1.0"]]
+  :pom-plugins [[com.theoryinpractise/clojure-maven-plugin "1.3.13"]
+                {:configuration [:sourceDirectories [:sourceDirectory "src"]]
+                 :extension "true"
+                 :executions ([:execution [:id "echodir"]
+                               [:goals ([:goal "run"])]
+                               [:phase "verify"]])}
+                [org.apache.tomcat.maven/tomcat7-maven-plugin "2.1"]]
+  :scm {:name "git"
+        :tag "098afd745bcd"
+        :url "http://127.0.0.1/git/my-project"
+        :dir ".."}
+  :pom-addition [:developers [:developer {:id "benbit"}
+                              [:name "Ben Bitdiddle"]
+                              [:url "http://www.example.com/benjamin"]]]
+
+  ;;; 安全标记
+  ;; 安装是否含有snapshots
+  :install-releases? false
+  ;; git的版本
+  :deploy-branches ["master"]
+
+  ;;; 手工类安装
+  ;; 安装classifiers可选项.
+  ;; classifiers映射列表.
+  :classifiers {;; 如果值是一个map, 那么合并它们
+                :tests {:source-paths ^:replace ["test"]}
+                ;; 如果值是一个key 那么就是从:profiles中查找
+                :classy :my-profile})
+
+;;; Leiningen 环境变量
+
+;; JAVA_CMD - java可执行文件
+;; JVM_OPTS - 传递给java命令行参数
+;; DEBUG - 增加冗长
+;; LEIN_SILENT - 调整输出信息输出
+;; LEIN_HOME - 查找用户设置目录
+;; LEIN_SNAPSHOTS_IN_RELEASE - 允许发布包含snapshots版本
+;; LEIN_JVM_OPTS - jvm优化参数
+;; LEIN_REPL_HOST - nREPL主机
+;; LEIN_REPL_PORT - nREPL端口
+;; LEIN_OFFLINE - 相当于:offline?
+;; LEIN_GPG - gpg认证
+;; LEIN_NEW_UNIX_NEWLINES - 确保 `lein new` 触发 '\n' 当做新行
+;; LEIN_SUPPRESS_USER_LEVEL_REPO_WARNINGS - 调整 "repository in user profile" 警告
+;; LEIN_FAST_TRAMPOLINE - java 内存优化命令
+;; LEIN_NO_USER_PROFILES - 调整用户和系统配置
+;; http_proxy - 代理主机和端口
+;; http_no_proxy - 直接连接列表
