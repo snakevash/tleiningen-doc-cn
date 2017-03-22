@@ -1,0 +1,50 @@
+基于模板来生成一个项目脚手架
+
+单个参数的情况，默认模板，参数作为项目的名称
+
+两个参数的情况，第一个参数是模板的名称，第二个参数是项目的名称
+
+    lein new $TEMPLATE_NAME $PROJECT_NAME
+
+指定目录的名称与项目名称不一样，使用--to-dir（默认情况项目名称和目录名称相同）
+
+    lein new $TEMPLATE_NAME $PROJECT_NAME --to-dir $DIR
+
+默认如果已经存在相关目录，那么项目创建失败。
+可以使用--force强制覆盖这个行为
+
+    lein new $TEMPLATE_NAME $PROJECT_NAME --force
+    lein new $TEMPLATE_NAME $PROJECT_NAME --to-dir $DIR --force
+
+使用--来分割参数的传递， -- 之后的是给模板用的，之前的是给lein new用的
+
+    lein new $TEMPLATE_NAME $PROJECT_NAME --to-dir $DIR -- template-arg-1 template-arg-2
+
+使用--snapshot来指定一个未标准发布的模板
+
+    lein new $TEMPLATE_NAME $PROJECT_NAME --snapshot
+
+使用--template-version来指定使用某个版本的模板
+
+    lein new $TEMPLATE_NAME $PROJECT_NAME --template-version $TEMPLATE_VERSION
+
+--snapshot和--template-version参数需要在--之前
+
+    lein new $TEMPLATE_NAME $PROJECT_NAME --snapshot -- template-arg-1 template-arg-2
+
+第三方模板搜索地址:https://clojars.org/search?q=lein-template
+第三方模板无需执行安装命令，lein会自己安装
+
+使用lein new :show $TEMPLATE来显示模板的说明
+
+要创建自己的模板，就查看插件编写说明
+
+可选子任务
+default    库模板
+plugin     插件模板
+app        应用模板
+template   模板元信息
+
+lein help new $SUBTASK 来了解详细信息
+
+参数: ([project-name] [template project-name [-- & args]])
