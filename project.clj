@@ -6,4 +6,6 @@
   :dependencies [[org.clojure/clojure "1.6.0"]]
   :main ^:skip-aot tleiningen-doc-cn.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all :snake "aa"}}
+  :plugins [[lein-pprint "1.1.2"]]
+  )
