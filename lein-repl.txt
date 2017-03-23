@@ -1,0 +1,26 @@
+
+开启一个repl会话，可以是当前用户也可以是单独的。
+
+子命令：
+<none> -> :start
+
+:start [:host host] [:port port]
+  执行一个nREPL的服务器并且等待客户端链接它。
+  如果：host键提供了，那么LEIN_REPL_HOST就设置了，或者：host可以出现在：repl-options
+  的键中，默认是localhost，并且会阻塞远程链接。
+  如果设置：port，那么LEIN_REPL_PORT就被设置，或者：port可以出现在：repl-options的键中，
+  默认是随机生成的一个。在执行一个项目时，nREPL会运行在Leiningen内部。
+
+:headless [:host host] [:port port]
+  执行一个nREPL服务并且等待客户端链接它。
+
+:connect [dest]
+  链接一个已经存在的nREPL服务器，目标可以是：
+  - 一个HTTP(s)链接
+  - host:port
+  - port -- 从LEIN_REPL_HOST或者:repl-options中获取服务器地址然后指定端口链接
+  如果没有参数，那么信息来源于LEIN_REPL_PORT,:repl-options,.nrepl-port这些。
+
+注意：:repl配置是立即生效的，它不能被自动发现，但是可以被覆盖
+
+参数: ([] [subcommand & opts])
