@@ -1,0 +1,14 @@
+运行项目的-main函数
+
+USAGE: lein run [--] [ARGS...]
+调用在project.clj的配置文件里面指定命名空间的-main函数
+使用--来区分参数是传给哪个部分的
+如果你的主函数不叫做-main 那么使用完整的命名空间
+
+USAGE: lein run -m NAMESPACE[/MAIN_FUNCTION] [--] [ARGS...]
+调用指定命名空间的函数
+
+--quote-args开关用于直接结构的传入而避免转化成字符串
+这个对于传入特点配置文件里面的结构有用
+
+lein help trampoline 来查看更多信息
